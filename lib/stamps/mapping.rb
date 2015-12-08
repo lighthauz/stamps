@@ -9,9 +9,7 @@ module Stamps
   #
   module Mapping
 
-    class Base < Hashie::Trash
-      property :attributes!
-    end
+    class Base < Hashie::Trash; end
 
     class Account < Base
       property :Authenticator,  :from => :authenticator
@@ -84,6 +82,11 @@ module Stamps
       property :ToState,                 :from => :to_state
       property :CubicPricing,            :from => :cubic_pricing
       property :DeliveryDate,            :from => :delivery_date
+      property :RequiresAllOf,           :from => :requires_all_of
+
+      def requires_all_of=(vals)
+        self[:RequiresAllOf]  = RequiresAllOf.new(vals)
+      end
 
       # Maps :rate to AddOns map
       def add_ons=(addons)
@@ -108,7 +111,7 @@ module Stamps
     end
 
     class AddOnsArray < Base
-      property :AddOnV7,     :from => :add_on_v7
+      property :AddOnV7, :from => :add_on_v7
 
       def add_on_v7=(vals)
         return unless vals
@@ -182,7 +185,8 @@ module Stamps
       property :OverrideHash,                         :from => :override_hash
 
       def self.order
-        [:authenticator, :transaction_id, :tracking_number, :rate, :from, :to, :sample_only ]#, :return_image_data]
+        ## dev note: update as is necessary
+        [:authenticator, :transaction_id, :tracking_number, :rate, :from, :to, :sample_only, :return_image_data]
       end
 
       # Maps :from to Address map
