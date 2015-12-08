@@ -8,22 +8,25 @@ module Stamps
   module Request
 
     # Perform an HTTP request
-    def request(web_method, params, raw=false)
+    def request(web_method, params)
       client = Savon.client do |globals|
         globals.endpoint self.endpoint
         globals.namespace self.namespace
-        globals.namespaces("xmlns:tns" => self.namespace)
-        globals.log false
-        globals.logger Logger.new(STDOUT)
-        globals.raise_errors false
-        globals.headers({ "SoapAction" => formatted_soap_action(web_method) })
+        globals.namespaces('xmlns:tns' => self.namespace)
+        globals.log self.log_messages
+        globals.logger Rails.logger
+        globals.raise_errors self.raise_errors
+        globals.headers({ :SoapAction.to_s => formatted_soap_action(web_method) })
         globals.element_form_default :qualified
-        globals.namespace_identifier :tns
+        globals.namespace_identifier nil
         globals.open_timeout self.open_timeout
         globals.read_timeout self.read_timeout
+        globals.pretty_print_xml true
+        globals.convert_request_keys_to :none
+        globals.soap_version 2
       end
 
-      response = client.call(web_method, :message => params.to_hash)
+      response = client.call(web_method, :message => params.to_h)
 
       Stamps::Response.new(response).to_hash
     end
@@ -39,7 +42,7 @@ module Stamps
     # Make Authentication request for the user
     #
     def get_authenticator_token
-      response_hash = self.request('AuthenticateUser',
+      response_hash = self.request(:AuthenticateUser,
         Stamps::Mapping::AuthenticateUser.new(
           :credentials => {
             :integration_id => self.integration_id,
@@ -47,6 +50,7 @@ module Stamps
             :password       => self.password
         })
       )
+
       if response_hash[:authenticate_user_response] != nil
         response_hash[:authenticate_user_response][:authenticator]
       else
