@@ -9,16 +9,19 @@ module Stamps
 
     # Perform an HTTP request
     def request(web_method, params)
+      ## required hack
+      underscored_web_method = web_method.to_s.underscore.to_sym
+
       client = Savon.client do |globals|
-        globals.endpoint self.endpoint
-        globals.namespace self.namespace
-        globals.namespaces('xmlns:tns' => self.namespace)
+        #globals.endpoint self.endpoint
+        #globals.namespace self.namespace
+        #globals.namespaces({'xmlns:tns' => self.namespace})
+        globals.wsdl self.wsdl
         globals.log self.log_messages
         globals.logger Rails.logger
         globals.raise_errors self.raise_errors
         globals.headers({ :SoapAction.to_s => formatted_soap_action(web_method) })
         globals.element_form_default :qualified
-        globals.namespace_identifier nil
         globals.open_timeout self.open_timeout
         globals.read_timeout self.read_timeout
         globals.pretty_print_xml true
@@ -26,7 +29,7 @@ module Stamps
         globals.soap_version 2
       end
 
-      response = client.call(web_method, :message => params.to_h)
+      response = client.call(underscored_web_method, :message => params.to_h)
 
       Stamps::Response.new(response).to_hash
     end
@@ -43,12 +46,12 @@ module Stamps
     #
     def get_authenticator_token
       response_hash = self.request(:AuthenticateUser,
-        Stamps::Mapping::AuthenticateUser.new(
-          :credentials => {
-            :integration_id => self.integration_id,
-            :username       => self.username,
-            :password       => self.password
-        })
+                                   Stamps::Mapping::AuthenticateUser.new(
+                                       :credentials => {
+                                           :integration_id => self.integration_id,
+                                           :username       => self.username,
+                                           :password       => self.password
+                                       })
       )
 
       if response_hash[:authenticate_user_response] != nil
