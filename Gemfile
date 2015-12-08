@@ -1,12 +1,16 @@
 source "http://rubygems.org"
 
-  gem 'simplecov', '~> 0.4.0'
-  gem 'shoulda', '~> 2.11.3'
-  gem 'mocha', '~> 0.9.11'
-  gem 'webmock', '~> 1.6.2'
-  gem 'awesome_print'
-  gem 'yard'
-  gem 'bluecloth'
+group :development, :test do
+  gem 'simplecov', '~> 0.11.1'
+  gem 'shoulda', '~> 3.5.0'
+  gem 'mocha', '~> 1.1.0'
+  gem 'webmock', '~> 1.22.3'
+  gem 'awesome_print', '~> 1.6.1'
+  gem 'yard', '~> 0.8.7.6'
+  gem 'bluecloth', '~> 2.2.0'
+  gem 'rake', '~> 10.4.2'
+  gem 'pry', '~> 0.10.3'
+end
 
 # Specify your gem's dependencies in stamps.gemspec
 gemspec
