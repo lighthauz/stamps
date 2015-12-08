@@ -5,6 +5,7 @@ module Stamps
     # An array of valid keys in the options hash when configuring a {Stamps::API}
     VALID_OPTIONS_KEYS = [
       :integration_id,
+      :wsdl,
       :username,
       :password,
       :namespace,
@@ -16,6 +17,8 @@ module Stamps
       :open_timeout,
       :read_timeout,
       :endpoint].freeze
+
+    DEFAULT_WSDL = 'https://swsim.testing.stamps.com/swsim/swsimv49.asmx?wsdl'.freeze
 
     # The endpoint that will be used to connect if none is set
     DEFAULT_ENDPOINT = 'https://swsim.testing.stamps.com/swsim/swsimv49.asmx'.freeze
@@ -61,6 +64,7 @@ module Stamps
 
     # Reset all configuration options to defaults
     def reset
+      self.wsdl         = DEFAULT_WSDL
       self.endpoint     = DEFAULT_ENDPOINT
       self.namespace    = DEFAULT_NAMESPACE
       self.format       = DEFAULT_FORMAT
