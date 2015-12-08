@@ -5,6 +5,7 @@ require 'stamps/api'
 require 'stamps/mapping'
 require 'stamps/types'
 require 'stamps/client'
+require 'stamps/helpers'
 
 module Stamps
   extend Configuration

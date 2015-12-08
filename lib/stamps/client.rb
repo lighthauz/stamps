@@ -2,8 +2,10 @@ module Stamps
   # Wrapper for the Stamps Web Services API
   #
   class Client < API
-    Dir[File.expand_path('../client/*.rb', __FILE__)].each{|f| require f}
+    Dir[File.expand_path('../client/*.rb', __FILE__)].each { |f| require f }
+
     include Stamps::Mapping
+    include Stamps::Helpers
     include Stamps::Client::Account
     include Stamps::Client::Address
     include Stamps::Client::Rate
