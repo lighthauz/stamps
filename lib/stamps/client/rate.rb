@@ -24,19 +24,14 @@ module Stamps
           :authenticator => authenticator_token,
           :rate          => Stamps::Mapping::Rate.new(params)
         })
-        response = request('GetRates', rates)
+
+        response = request(:GetRates, rates)
         if response[:get_rates_response].nil?
           response
         else
           response[:get_rates_response][:rates].nil? ? [] : [response[:get_rates_response][:rates][:rate]].flatten
         end
       end
-
-      def get_rate(params = {})
-        rates  = get_rates(params)
-        rates.is_a?(Array) ? rates.first : rates
-      end
-
     end
   end
 end

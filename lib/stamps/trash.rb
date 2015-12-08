@@ -18,6 +18,7 @@ module Hashie
 
       # Use active_support for ordering hashes for Ruby < 1.9
       out = RUBY_VERSION >= '1.9' ? {} : ActiveSupport::OrderedHash.new
+
       sorted_keys.each do |k|
         next if self[k].nil?
         out[k] = Hashie::Hash === self[k] ? self[k].to_hash : self[k]

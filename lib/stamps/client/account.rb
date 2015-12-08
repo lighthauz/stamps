@@ -9,7 +9,7 @@ module Stamps
       #
       def account(params = {})
         params[:authenticator] = authenticator_token
-        response = request('GetAccountInfo', Stamps::Mapping::Account.new(params) )
+        response = request(:GetAccountInfo, Stamps::Mapping::Account.new(params) )
         response[:errors].empty? ? response[:get_account_info_response][:account_info] : response
       end
 
@@ -17,7 +17,7 @@ module Stamps
       #
       def purchase_postage(params = {})
         params[:authenticator] = authenticator_token
-        response = request('PurchasePostage', Stamps::Mapping::PurchasePostage.new(params))
+        response = request(:PurchasePostage, Stamps::Mapping::PurchasePostage.new(params))
         response[:errors].empty? ? response[:purchase_postage_response] : response
       end
       
@@ -25,7 +25,7 @@ module Stamps
       #
       def get_purchase_status(params = {})
         params[:authenticator] = authenticator_token
-        response = request('GetPurchaseStatus', Stamps::Mapping::GetPurchaseStatus.new(params))
+        response = request(:GetPurchaseStatus, Stamps::Mapping::GetPurchaseStatus.new(params))
         response[:errors].empty? ? response[:get_purchase_status_response] : response
       end
 
@@ -34,7 +34,7 @@ module Stamps
       #
       def carrier_pickup(params = {})
         params[:authenticator] = authenticator_token
-        response = request('CarrierPickup', Stamps::Mapping::CarrierPickup.new(params))
+        response = request(:CarrierPickup, Stamps::Mapping::CarrierPickup.new(params))
         response[:errors].empty? ?  response[:carrier_pickup_response] : response
       end
 

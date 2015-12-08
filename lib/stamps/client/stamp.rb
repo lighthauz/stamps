@@ -13,7 +13,7 @@ module Stamps
       # In order to successfully create postage labels, the following steps
       # must happen:
       #
-      # 1. Authentiation -  identify the user and ensure that the user is
+      # 1. Authentication -  identify the user and ensure that the user is
       #    authorized to perform the operation.
       #
       # 2. CleanseAddress - Ship-to addresses must be standardized based on
@@ -28,8 +28,15 @@ module Stamps
       #
       def create!(params = {})
         params[:authenticator] = authenticator_token unless params[:authenticator]
-        params[:from] ||= Hash.new
-        response = request('CreateIndicium', Stamps::Mapping::Stamp.new(params))
+
+        ## sort of required; compact to remove nil values
+        params = compact_hash(params.to_h)
+
+        if Stamps::Mapping::Stamp.respond_to? :order
+          params = get_ordered_params(params, Stamps::Mapping::Stamp.order)
+        end
+
+        response = request(:CreateIndicium, Stamps::Mapping::Stamp.new(params))
         response[:errors].empty? ? response[:create_indicium_response] : response
       end
 
@@ -39,7 +46,7 @@ module Stamps
       #
       def cancel!(params = {})
         params[:authenticator] = authenticator_token unless params[:authenticator]
-        response = request('CancelIndicium', Stamps::Mapping::CancelStamp.new(params))
+        response = request(:CancelIndicium, Stamps::Mapping::CancelStamp.new(params))
         response[:errors].empty? ? response[:cancel_indicium_response] : response
       end
 
@@ -52,7 +59,7 @@ module Stamps
           :authenticator => authenticator_token,
           :stamps_transaction_id => stamps_transaction_id
         }
-        response = request('TrackShipment', Stamps::Mapping::TrackShipment.new(params))
+        response = request(:TrackShipment, Stamps::Mapping::TrackShipment.new(params))
         response[:errors].empty? ? response[:track_shipment_response] : response
       end
 
