@@ -9,40 +9,44 @@ module Stamps
   #
   module Mapping
 
-    class Account < Hashie::Trash
-      property :Authenticator, :from => :authenticator
+    class Base < Hashie::Trash
+      property :attributes!
+    end
+
+    class Account < Base
+      property :Authenticator,  :from => :authenticator
       property :PostageBalance, :from => :postage_balance
     end
 
-    class AuthenticateUser < Hashie::Trash
-      property :Credentials,   :from => :credentials
+    class AuthenticateUser < Base
+      property :Credentials,    :from => :credentials
 
       def credentials=(val)
         self[:Credentials] = Credentials.new(val)
       end
     end
 
-    class Credentials < Hashie::Trash
-      property :IntegrationID, :from => :integration_id
-      property :Username,      :from => :username
-      property :Password,      :from => :password
+    class Credentials < Base
+      property :IntegrationID,           :from => :integration_id
+      property :Username,                :from => :username
+      property :Password,                :from => :password
     end
 
-    class PostageBalance < Hashie::Trash
-      property :AvailablePostage,  :from => :available_postage
-      property :ControlTotal,      :from => :control_total
+    class PostageBalance < Base
+      property :AvailablePostage,        :from => :available_postage
+      property :ControlTotal,            :from => :control_total
     end
 
-    class GetPostageStatus < Hashie::Trash
-      property :TransactionID, :from => :transaction_id
+    class GetPostageStatus < Base
+      property :TransactionID,           :from => :transaction_id
     end
 
-    class Rates < Hashie::Trash
-      property :Authenticator, :from => :authenticator
-      property :Rate,          :from => :rate
+    class Rates < Base
+      property :Authenticator,           :from => :authenticator
+      property :Rate,                    :from => :rate
     end
 
-    class Rate < Hashie::Trash
+    class Rate < Base
       property :FromZIPCode,             :from => :from_zip_code
       property :ToZIPCode,               :from => :to_zip_code
       property :ToCountry,               :from => :to_country
@@ -55,7 +59,6 @@ module Stamps
       property :WeightLb,                :from => :weight_lb
       property :WeightOz,                :from => :weight_oz
       property :PackageType,             :from => :package_type
-      property :RequiresAllOf,           :from => :requires_all
       property :Length,                  :from => :length
       property :Width,                   :from => :width
       property :Height,                  :from => :height
@@ -80,40 +83,56 @@ module Stamps
       property :RateCategory,            :from => :rate_category
       property :ToState,                 :from => :to_state
       property :CubicPricing,            :from => :cubic_pricing
+      property :DeliveryDate,            :from => :delivery_date
 
       # Maps :rate to AddOns map
       def add_ons=(addons)
-        self[:AddOns] = AddOnsArray.new(:add_on_v4 => addons[:add_on_v4],
-                                        :add_on_v5 => addons[:add_on_v5])
+        self[:AddOns] = AddOnsArray.new(:add_on_v7 => addons[:add_on_v7])
       end
     end
 
-    class AddOnsArray < Hashie::Trash
-      property :AddOnV4,     :from => :add_on_v4
-      property :AddOnV5,     :from => :add_on_v5
+    class RequiresAllOf < Base
+      property :RequiresOneOf, :from => :requires_one_of
 
-      def add_on_v4=(vals)
-        return unless vals
-        self[:AddOnV4] = vals.map{ |value| AddOn.new(value).to_hash }
-      end
-
-      def add_on_v5=(vals)
-        return unless vals
-        self[:AddOnV5] = vals.map{ |value| AddOn.new(value).to_hash }
+      def requires_one_of=(vals)
+        self[:RequiresOneOf]  = RequiresOneOf.new(vals)
       end
     end
 
-    class AddOn < Hashie::Trash
+    class RequiresOneOf < Base
+      property :AddOnTypeV7, :from => :add_on_type_v7
+    end
+
+    class ProhibitedWithAnyOf < Base
+      property :AddOnTypeV7, :from => :add_on_type_v7
+    end
+
+    class AddOnsArray < Base
+      property :AddOnV7,     :from => :add_on_v7
+
+      def add_on_v7=(vals)
+        return unless vals
+        self[:AddOnV7] = vals.map{ |value| AddOn.new(value).to_h }
+      end
+    end
+
+    class AddOn < Base
       property :Amount,                    :from => :amount
       property :AddOnType,                 :from => :add_on_type
       property :ProhibitedWithAnyOf,       :from => :prohibited_with_any_of
       property :MissingData,               :from => :missing_data
-      def prohibited_with_any_of; end
-      def prohibited_with_any_of=(vals); end
       property :RequiresAllOf,             :from => :requires_all_of
+
+      def prohibited_with_any_of=(vals)
+        self[:ProhibitedWithAnyOf] = ProhibitedWithAnyOf.new(vals)
+      end
+
+      def requires_all_of=(vals)
+        self[:RequiresAllOf]  = RequiresAllOf.new(vals)
+      end
     end
 
-    class Stamp < Hashie::Trash
+    class Stamp < Base
       property :Authenticator,                        :from => :authenticator
       property :IntegratorTxID,                       :from => :transaction_id
       property :TrackingNumber,                       :from => :tracking_number
@@ -122,11 +141,10 @@ module Stamps
       property :To,                                   :from => :to
       property :CustomerID,                           :from => :customer_id
       property :Customs,                              :from => :customs
-      property :SampleOnly,                           :from => :sample
+      property :SampleOnly,                           :from => :sample_only
       property :ImageType,                            :from => :image_type
       property :EltronPrinterDPIType,                 :from => :label_resolution
-      property :memo
-      property :recipient_email
+      property :memo,                                 :from => :note
       property :deliveryNotification,                 :from => :notify
       property :shipmentNotificationCC,               :from => :notify_crates
       property :shipmentNotificationFromCompany,      :from => :notify_from_company
@@ -135,6 +153,37 @@ module Stamps
       property :printMemo,                            :from => :print_memo
       property :nonDeliveryOption,                    :from => :non_delivery_option
       property :ReturnImageData,                      :from => :return_image_data
+      property :FromZIPCode,                          :from => :from_zip_code
+      property :ToZIPCode,                            :from => :to_zip_code
+      property :Amount,                               :from => :amount
+      property :ServiceType,                          :from => :service_type
+      property :DeliverDays,                          :from => :deliver_days
+      property :WeightOz,                             :from => :weight_oz
+      property :PackageType,                          :from => :package_type
+      property :ShipDate,                             :from => :ship_date
+      property :DeliveryDate,                         :from => :delivery_date
+      property :AddOnV7,                              :from => :add_on_v7
+      property :DimWeighting,                         :from => :dim_weighting
+      property :EffectiveWeightInOunces,              :from => :effective_weight_in_ounces
+      property :Zone,                                 :from => :zone
+      property :RateCategory,                         :from => :rate_category
+      property :ToState,                              :from => :to_state
+      property :FullName,                             :from => :full_name
+      property :Address1,                             :from => :address1
+      property :City,                                 :from => :city
+      property :State,                                :from => :state
+      property :ZIPCode,                              :from => :zip_code
+      property :ZIPCodeAddOn,                         :from => :zip_code_add_on
+      property :InsuredValue,                         :from => :insured_value
+      property :CODValue,                             :from => :cod_value
+      property :DPB,                                  :from => :dpb
+      property :CheckDigit,                           :from => :check_digit
+      property :CleanseHash,                          :from => :cleanse_hash
+      property :OverrideHash,                         :from => :override_hash
+
+      def self.order
+        [:authenticator, :transaction_id, :tracking_number, :rate, :from, :to, :sample_only ]#, :return_image_data]
+      end
 
       # Maps :from to Address map
       def from=(val)
@@ -162,8 +211,7 @@ module Stamps
       end
     end
 
-    class Address < Hashie::Trash
-      property :Authenticator, :from => :authenticator
+    class Address < Base
       property :FullName,      :from => :full_name
       property :NamePrefix,    :from => :name_prefix
       property :FirstName,     :from => :first_name
@@ -191,9 +239,13 @@ module Stamps
       property :OverrideHash,  :from => :override_hash
     end
 
-    class CleanseAddress < Hashie::Trash
-      property :Authenticator, :from => :authenticator
-      property :Address,       :from => :address
+    class CleanseAddress < Base
+      property :Authenticator,  :from => :authenticator
+      property :Address,        :from => :address
+
+      def self.order
+        [:authenticator, :address]
+      end
 
       # Maps :address to Address map
       def address=(val)
@@ -201,25 +253,25 @@ module Stamps
       end
     end
 
-    class PurchasePostage < Hashie::Trash
-      property :Authenticator,  :from => :authenticator
-      property :IntegratorTxID, :from => :transaction_id
-      property :PurchaseAmount, :from => :amount
-      property :ControlTotal,   :from => :control_total
+    class PurchasePostage < Base
+      property :Authenticator,    :from => :authenticator
+      property :IntegratorTxID,   :from => :transaction_id
+      property :PurchaseAmount,   :from => :amount
+      property :ControlTotal,     :from => :control_total
     end
 
-    class GetPurchaseStatus < Hashie::Trash
-      property :Authenticator, :from => :authenticator
-      property :TransactionID, :from => :transaction_id
+    class GetPurchaseStatus < Base
+      property :Authenticator,    :from => :authenticator
+      property :TransactionID,    :from => :transaction_id
     end
 
-    class CancelStamp< Hashie::Trash
-      property :Authenticator,  :from => :authenticator
-      property :StampsTxID,     :from => :transaction_id
-      property :TrackingNumber, :from => :tracking_number
+    class CancelStamp < Base
+      property :Authenticator,    :from => :authenticator
+      property :StampsTxID,       :from => :transaction_id
+      property :TrackingNumber,   :from => :tracking_number
     end
 
-    class CarrierPickup < Hashie::Trash
+    class CarrierPickup < Base
       property :Authenticator,               :from => :authenticator
       property :FirstName,                   :from => :first_name
       property :LastName,                    :from => :last_name
@@ -241,7 +293,7 @@ module Stamps
       property :SpecialInstruction,          :from => :special_instruction
     end
 
-    class Customs < Hashie::Trash
+    class Customs < Base
       property :ContentType,       :from => :content_type
       property :Comments,          :from => :comments
       property :LicenseNumber,     :from => :license_number
@@ -253,18 +305,19 @@ module Stamps
       # Maps :customs CustomsLine map
       def customs_lines=(customs)
         # Important:  Must call to_hash to force re-ordering!
-        self[:CustomsLines] = customs.collect{ |val| CustomsLinesArray.new(val).to_hash }
+        self[:CustomsLines] = customs.collect{ |val| CustomsLinesArray.new(val).to_h }
       end
     end
 
-    class CustomsLinesArray < Hashie::Trash
-      property :CustomsLine,     :from => :custom
+    class CustomsLinesArray < Base
+      property :CustomsLine,  :from => :custom
+
       def custom=(val)
-        self[:CustomsLine] = CustomsLine.new(val).to_hash
+        self[:CustomsLine] = CustomsLine.new(val).to_h
       end
     end
 
-    class CustomsLine < Hashie::Trash
+    class CustomsLine < Base
       property :Description,     :from => :description
       property :Quantity,        :from => :quantity
       property :Value,           :from => :value
@@ -274,10 +327,9 @@ module Stamps
       property :CountryOfOrigin, :from => :country_of_origin
     end
 
-    class TrackShipment < Hashie::Trash
+    class TrackShipment < Base
       property :Authenticator, :from => :authenticator
       property :StampsTxID,    :from => :stamps_transaction_id
     end
-
   end
 end
