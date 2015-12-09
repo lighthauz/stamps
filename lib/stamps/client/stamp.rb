@@ -29,12 +29,9 @@ module Stamps
       def create!(params = {})
         params[:authenticator] = authenticator_token unless params[:authenticator]
 
-        ## sort of required; compact to remove nil values
+        ## required hacks - order, then compact to remove nil values
+        params = get_ordered_params(params, Stamps::Mapping::Stamp.order)
         params = compact_hash(params.to_h)
-
-        if Stamps::Mapping::Stamp.respond_to? :order
-          params = get_ordered_params(params, Stamps::Mapping::Stamp.order)
-        end
 
         response = request(:CreateIndicium, Stamps::Mapping::Stamp.new(params))
         response[:errors].empty? ? response[:create_indicium_response] : response
@@ -46,6 +43,11 @@ module Stamps
       #
       def cancel!(params = {})
         params[:authenticator] = authenticator_token unless params[:authenticator]
+
+        ## required hacks - order, then compact to remove nil values
+        params = get_ordered_params(params, Stamps::Mapping::CancelStamp.order)
+        params = compact_hash(params.to_h)
+
         response = request(:CancelIndicium, Stamps::Mapping::CancelStamp.new(params))
         response[:errors].empty? ? response[:cancel_indicium_response] : response
       end

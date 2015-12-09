@@ -271,8 +271,12 @@ module Stamps
 
     class CancelStamp < Base
       property :Authenticator,    :from => :authenticator
-      property :StampsTxID,       :from => :transaction_id
+      property :StampsTxID,       :from => :stamps_tx_id
       property :TrackingNumber,   :from => :tracking_number
+
+      def self.order
+        [:authenticator, :stamps_tx_id, :tracking_number]
+      end
     end
 
     class CarrierPickup < Base
